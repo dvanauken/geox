@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Frontend-Task-Assignment/.idea/Frontend-Task-Assignment.iml" filepath="$PROJECT_DIR$/../Frontend-Task-Assignment/.idea/Frontend-Task-Assignment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../node/SimpleNodeAPI/.idea/SimpleNodeAPI.iml" filepath="$PROJECT_DIR$/../../node/SimpleNodeAPI/.idea/SimpleNodeAPI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/geox.iml" filepath="$PROJECT_DIR$/.idea/geox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../react202402/.idea/react202402.iml" filepath="$PROJECT_DIR$/../react202402/.idea/react202402.iml" />
+    </modules>
+  </component>
+</project>

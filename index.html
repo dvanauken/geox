@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>World Map</title>
+    <meta charset="UTF-8">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/@turf/turf"></script>
+    <link rel="stylesheet" type="text/css" href="css/reset.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+<div id="content-wrapper">
+    <svg id="map" width="100%" height="100%">
+    </svg>
+    <div id="button-container">
+
+        <input id="airline-code-input" type="text" placeholder="Enter airline code" value="XP">
+        <button id="update-airline-btn" type="button">Update Airline</button>
+
+        <button id="yaw-btn">Yaw (λ) +10</button>
+        <input id="yaw-value" type="number" value="0"> <!-- Input for Yaw value -->
+        <button id="pitch-btn">Pitch (φ) +10</button>
+        <input id="pitch-value" type="number" value="0"> <!-- Input for Pitch value -->
+        <button id="roll-btn">Roll (γ) +10</button>
+        <input id="roll-value" type="number" value="0"> <!-- Input for Roll value -->
+        <button id="submit-btn" type="button">Update</button> <!-- Update button -->
+        <select id="projectionSelect">
+            <option value="geoGnomonic">Gnomonic</option>
+            <option value="geoNaturalEarth1">Natural Earth 1</option>
+            <option value="geoMercator">Mercator</option>
+            <option value="geoOrthographic">Orthographic</option>
+            <option value="geoStereographic">Stereographic</option>
+            <option value="geoTransverseMercator">TransverseMercator</option>
+        </select>
+    </div>
+</div>
+
+<script>
+    let lastZoomTransform = d3.zoomIdentity;
+    let selectedRoute = null;
+    let rotation = [0, 0, 0]; // Initial rotation for yaw, pitch, roll
+    let svgWidth = document.getElementById('map').clientWidth * 0.9;
+    let svgHeight = document.getElementById('map').clientHeight * 0.9;
+    this.sphere = {type: "Sphere"};
+
+    // Define the projection, path, and initial SVG elements
+    const svg = d3.select('#map').attr('width', '100%').attr('height', '100%');
+
+    let projection = d3.geoNaturalEarth1()
+        .fitSize([svgWidth, svgHeight], this.sphere)
+        .translate([window.innerWidth / 2, window.innerHeight / 2])
+        .rotate(rotation);
+    projection.precision(0.001);
+
+    let path = d3.geoPath().projection(projection);
+
+    svg.append("path")
+        .datum(this.sphere)
+        .attr("class", "sphere")
+        .attr("d", path)
+        .attr("fill", "#ADD8E6");
+
+    const legend = svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(20, ${window.innerHeight - 100})`);
+
+    legend.append("circle")
+        .attr("cx", 20)
+        .attr("cy", 30)
+        .attr("r", 6)
+        .style("fill", "red");
+
+    legend.append("text")
+        .attr("x", 40)
+        .attr("y", 35)
+        .text("Route Endpoint")
+        .style("font-size", "12px")
+        .attr("alignment-baseline", "middle");
+
+    svg.append("text")
+        .attr("x", 10)
+        .attr("y", 20)
+        .text("dbVA")
+        .attr("class", "company-name")
+        .attr("fill", "rgba(161,6,6,0.83)")
+        .attr("font-size", "20px");
+
+
+    const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        //.translateExtent([[-projection.scale(), -projection.scale()], [projection.scale() * 2, projection.scale() * 2]])
+        .on("zoom", function(event) {
+            //svg.selectAll('path').attr('transform', event.transform);
+
+
+            console.log(event.transform.k);
+
+            svg.selectAll("path") // For geoPaths or other paths you have
+                .attr("transform", event.transform)
+                .attr("stroke-width", 0.5 / event.transform.k); // Adjust the base radius as needed
+            svg.selectAll("circle.airport-dot")
+               .attr("transform", event.transform)
+               .attr("r", 12 / event.transform.k); // Adjust the base radius as needed
+            svg.selectAll("text.airport-label, text.country-label")
+                .attr("transform", event.transform)
+                .style("font-size", d => `${12 / event.transform.k}px`);
+            svg.selectAll('.country-label')
+                .style('display', event.transform.k > 2 ? null : 'none');
+
+            lastZoomTransform = event.transform;
+        });
+
+    svg.call(zoom); // This sets up the zoom behavior on the svg element
+
+
+    // Data Loading Group
+    function loadGeojsonData() {
+        Promise.all([
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson'),
+            fetch('assets/moscow.geojson')
+        ]).then(responses => {
+            return Promise.all(responses.map(response => {
+                return response.text().then(text => {
+                    return {url: response.url, data: text};
+                });
+            }));
+        }).then(files => {
+            files.forEach(file => {
+                const filename = file.url.split('/').pop();
+                let json = JSON.parse(file.data);
+                //const urlParts = file.url.split('/').pop().split('_');
+                //const className = `flights-${iataCode}`;
+
+                switch (true) {
+
+                    case filename === 'ne_50m_admin_0_countries.geojson':
+                        svg.selectAll('.country')
+                            .data(json.features)
+                            .enter().append('path')
+                            .attr('class', 'country')
+                            .attr('d', path)
+                            .style('fill', 'whitesmoke')
+                            .style('stroke', '#101010')
+                            .style('stroke-width', '0.1px');
+
+                        svg.selectAll('.country-label')
+                            .data(json.features)
+                            .enter().append('text')
+                            .attr('class', 'country-label')
+                            //.attr('display', 'hidden')
+                            .attr('x', d => path.centroid(d)[0])
+                            .attr('y', d => path.centroid(d)[1])
+                            .attr('font-size', '12px')
+                            .attr('fill', '#666')
+                            .style('text-anchor', 'middle')
+                            .text(d => d.properties.NAME);
+                        break;
+
+                    case filename === 'moscow.geojson':
+                        json = turf.rewind(json, {reverse: true});
+                        svg.selectAll('.moscow')
+                            .data(json.features)
+                            .enter().append('path')
+                            .attr('class', 'moscow')
+                            .attr('d', path)
+                            .style('fill', 'gray')
+                            .style('stroke', 'black')
+                            .style('stroke-width', '0.005px');
+                        break;
+                }
+            });
+        }).then(() => {
+            console.log('Done!');
+        }).catch(function (error) {
+            console.error('Error loading GeoJSON data:', error);
+        });
+    }
+
+    // UI Update Group
+    function updateRotationInputs() {
+        document.getElementById('yaw-value').value = rotation[0];
+        document.getElementById('pitch-value').value = rotation[1];
+        document.getElementById('roll-value').value = rotation[2];
+    }
+
+    // Map Manipulation Group
+    function updateRotation() {
+        projection.rotate(rotation);
+        svg.selectAll("path").attr("d", path);
+
+        svg.selectAll("circle.airport-dot")
+            .attr("cx", d => projection(d.coordinates)[0])
+            .attr("cy", d => projection(d.coordinates)[1]);
+
+        // svg.selectAll('.country-label')
+        //     .attr('x', d => projection(d3.geoCentroid(d))[0])
+        //     .attr('y', d => projection(d3.geoCentroid(d))[1])
+        //     .style('display', function(d) {
+        //         const centroid = projection(d3.geoCentroid(d));
+        //         return centroid !== null && centroid[0] !== undefined && centroid[1] !== undefined ? null : 'none';
+        //     });
+        svg.selectAll('.country-label')
+            .each(function(d) {
+                const centroid = d3.geoCentroid(d);
+                const projectedCentroid = projection(centroid);
+                const visible = projectedCentroid != null && isPointVisible(centroid);
+                d3.select(this)
+                    .attr('x', projectedCentroid ? projectedCentroid[0] : 0)
+                    .attr('y', projectedCentroid ? projectedCentroid[1] : 0)
+                    .style('display', visible ? null : 'none');
+            });
+
+        svg.selectAll('.airport-label')
+            .attr("x", d => projection(d.coordinates)[0])
+            .attr("y", d => projection(d.coordinates)[1])
+            .attr("dy", "-0.5em")
+            .style("text-anchor", "middle")
+            .style("alignment-baseline", "middle")
+            .style("font-size", "12px");
+
+        updateRotationInputs();
+    }
+
+    function isPointVisible(centroid) {
+        // Convert rotation to radians
+        const lambda = -rotation[0] * Math.PI / 180;
+        const phi = -rotation[1] * Math.PI / 180;
+
+        // Convert centroid to radians
+        const lambdaC = centroid[0] * Math.PI / 180;
+        const phiC = centroid[1] * Math.PI / 180;
+
+        // Calculate spherical coordinates of the rotation and centroid
+        const x = Math.cos(phi) * Math.sin(lambda);
+        const y = Math.sin(phi);
+        const z = Math.cos(phi) * Math.cos(lambda);
+
+        const xC = Math.cos(phiC) * Math.sin(lambdaC);
+        const yC = Math.sin(phiC);
+        const zC = Math.cos(phiC) * Math.cos(lambdaC);
+
+        // Dot product
+        const dot = x * xC + y * yC + z * zC;
+
+        return dot > 0;
+    }
+
+    function updateMapSizeAndProjection() {
+        const buttonContainerHeight = document.getElementById('button-container').clientHeight;
+
+        let svgWidth = document.getElementById('map').clientWidth;
+        let svgHeight = window.innerHeight - buttonContainerHeight;
+
+        projection.fitSize([svgWidth, svgHeight], this.sphere)
+            .translate([svgWidth / 2, svgHeight / 2]);
+
+        svg.selectAll('path').attr('d', path);
+
+        // Update the position of text elements
+        svg.selectAll('.country-label')
+            .attr('x', d => projection(d3.geoCentroid(d))[0])
+            .attr('y', d => projection(d3.geoCentroid(d))[1]);
+
+        svg.selectAll('.airport-label')
+            .attr('x', d => projection(d.coordinates)[0])
+            .attr('y', d => projection(d.coordinates)[1]);
+
+        // Update the position of circle elements
+        svg.selectAll('circle.route-end-point')
+            .attr('cx', d => projection(d.coordinates)[0])
+            .attr('cy', d => projection(d.coordinates)[1]);
+    }
+
+
+    function zoomed(event) {
+        const {transform} = event;
+        svg.selectAll("path") // For geoPaths or other paths you have
+            .attr("transform", transform)
+            .attr("stroke-width", 0.5 / transform.k); // Adjust the base radius as needed
+        svg.selectAll("circle")
+            .attr("transform", transform)
+            .attr("r", 12 / transform.k); // Adjust the base radius as needed
+        svg.selectAll("text")
+            .attr("transform", transform)
+            .style("font-size", d => `${12 / transform.k}px`);
+    }
+
+    function updateMapForAirline(airlineCode) {
+
+        const className = `flights-${airlineCode}`;
+
+        // Assuming you reload or have access to the original full dataset
+        fetch('assets/flights.geojson').then(response => {
+            return response.json();
+        }).then(json => {
+
+            let airports = new Map();
+
+            // Clear existing map features before applying new data
+            svg.selectAll('path.route.visible').remove();
+            svg.selectAll('path.route.hitbox').remove(); // Clear hitbox paths if they were added
+            svg.selectAll('.airport-dot').remove();
+            svg.selectAll('.airport-label').remove();
+
+            json.features = json.features.filter(feature => feature.properties.airlineIata === ''+airlineCode+'');
+            json.features.forEach(feature => {
+                if (feature.geometry.type === "LineString") {
+                    // Use `base` and `ref` for city names instead of non-existent `CityPair`
+                    let baseCity = feature.properties.base;
+                    let refCity = feature.properties.ref;
+
+                    let baseCoords = feature.geometry.coordinates[0];
+                    let refCoords = feature.geometry.coordinates[1];
+
+                    airports.set(baseCity, { code: baseCity, coordinates: baseCoords });
+                    airports.set(refCity, { code: refCity, coordinates: refCoords });
+
+                }
+            });
+
+            const filteredFeatures = json.features.filter(feature => feature.properties.airlineIata === airlineCode);
+
+            svg.selectAll('path.route.visible').remove(); // Clear existing paths
+
+            svg.selectAll('.' + `flights-${airlineCode}` + '.visible')
+                .data(filteredFeatures)
+                .enter().append('path')
+                .attr('class', `flights-${airlineCode}` + ' route visible')
+                .attr('stroke', '#f0f')
+                .attr('stroke-width', '0.1px')
+                .attr('fill', 'none')
+                .attr('d', path);
+
+            // Draw the invisible wider "shadow" paths for improved mouseover responsiveness
+            svg.selectAll('.' + className + '.hitbox')
+                .data(json.features)
+                .enter().append('path')
+                .attr('class', className + ' route hitbox')
+                .attr('stroke', 'transparent')
+                .attr('stroke-width', '10px')
+                .attr('fill', 'none')
+                .attr('d', path)
+                .on("mouseover", function (event, d) {
+                    d3.selectAll('.' + className + '.visible')
+                        .filter((_, i) => i === json.features.indexOf(d))
+                        .attr('stroke', 'yellow')
+                        .attr('stroke-width', '1px');
+                    console.log("Base:", d.properties.base, "Ref:", d.properties.ref);
+                })
+                .on("mouseout", function (event, d) {
+                    d3.selectAll('.' + className + '.visible')
+                        .filter((_, i) => i === json.features.indexOf(d))
+                        //.attr('stroke', airlineColors[filename])
+                        .attr('stroke-width', '0.1px');
+                });
+
+            // Draw airport dots
+            const dots = svg.selectAll('.airport-dot')
+                .data(Array.from(airports.values()), d => d.code)
+                .join('circle')
+                .attr('class', 'airport-dot')
+                .attr('fill', '#ccc')
+                .attr('r', 12 / lastZoomTransform.k) // Use the last zoom scale for radius
+                .attr('cx', d => projection(d.coordinates)[0])
+                .attr('cy', d => projection(d.coordinates)[1])
+                .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+
+            // Draw airport labels
+            const labels = svg.selectAll('.airport-label')
+                .data(Array.from(airports.values()), d => d.code)
+                .join('text')
+                .attr('class', 'airport-label')
+                .text(d => d.code)
+                .attr('font-size', `${12 / lastZoomTransform.k}px`) // Use the last zoom scale for font size
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'central')
+                .attr('x', d => projection(d.coordinates)[0])
+                .attr('y', d => projection(d.coordinates)[1])
+                .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+
+            // // Draw airport dots
+            // svg.selectAll('.airport-dot')
+            //     .data(Array.from(airports.values()))
+            //     .enter()
+            //     .append('circle')
+            //     .attr('class', 'airport-dot')
+            //     .attr('r', 12 / lastZoomTransform.k)
+            //     .attr('fill', '#ccc')
+            //     .attr('cx', d => projection(d.coordinates)[0])
+            //     .attr('cy', d => projection(d.coordinates)[1])
+            //     .attr('transform', lastZoomTransform.toString());
+            //
+            // // Draw airport labels
+            // svg.selectAll('.airport-label')
+            //     .data(Array.from(airports.values()))
+            //     .enter()
+            //     .append('text')
+            //     .attr('class', 'airport-label')
+            //     .text(d => d.code)
+            //     .attr('font-size', `${12 / lastZoomTransform.k}px`)
+            //     .attr('text-anchor', 'middle')
+            //     .attr('dominant-baseline', 'central')
+            //     .attr('x', d => projection(d.coordinates)[0])
+            //     .attr('y', d => projection(d.coordinates)[1])
+            //     .attr('transform', lastZoomTransform.toString());
+        }).then(() => {
+            svg.selectAll("path.route.visible").attr("transform", lastZoomTransform);
+            svg.selectAll("circle.airport-dot").attr("transform", lastZoomTransform);
+            svg.selectAll("text.airport-label").attr("transform", lastZoomTransform);
+        }).catch(function (error) {
+            console.error('Error updating the map:', error);
+        });
+    }
+
+    function updateAirlineButtonClickHandler() {
+        const airlineCode = document.getElementById('airline-code-input').value;
+        updateMapForAirline(airlineCode);
+
+        svg.selectAll("path.route.visible").attr("transform", lastZoomTransform);
+        svg.selectAll("circle.airport-dot").attr("transform", lastZoomTransform);
+        svg.selectAll("text.airport-label").attr("transform", lastZoomTransform);
+
+        // const currentZoomTransform = d3.zoomTransform(svg.node());
+        // svg.selectAll('path.route.visible')
+        //     .attr('transform', currentZoomTransform.toString());
+        //
+        // svg.selectAll('.airport-dot')
+        //     .attr('transform', currentZoomTransform.toString());
+        //
+        // svg.selectAll('.airport-label')
+        //     .attr('transform', currentZoomTransform.toString());
+    }
+
+    function yawButtonClickHandler() {
+        rotation[0] += 10; // Increment yaw
+        updateRotation();
+        updateRotationInputs();
+    }
+
+    function pitchButtonClickHandler() {
+        rotation[1] += 10; // Increment pitch
+        updateRotation();
+        updateRotationInputs();
+    }
+
+    function rollButtonClickHandler() {
+        rotation[2] += 10; // Increment roll
+        updateRotation();
+        updateRotationInputs();
+    }
+
+    function submitButtonClickHandler() {
+        rotation[0] = parseFloat(document.getElementById('yaw-value').value) || 0;
+        rotation[1] = parseFloat(document.getElementById('pitch-value').value) || 0;
+        rotation[2] = parseFloat(document.getElementById('roll-value').value) || 0;
+        updateRotation();
+    }
+
+    function projectionSelectChangeHandler() {
+        const selectedProjectionType = document.getElementById('projectionSelect').value;
+
+        // Check if the selected projection type is a function in d3
+        if (typeof d3[selectedProjectionType] === "function") {
+            projection = d3[selectedProjectionType]()
+                .fitSize([svgWidth, svgHeight], this.sphere)
+                .translate([svgWidth / 2, svgHeight / 2])
+                .rotate(rotation); // Add the current rotation
+        } else {
+            console.error("Selected projection type not found: " + selectedProjectionType);
+            return;
+        }
+
+        path = d3.geoPath().projection(projection);
+        svg.selectAll('path').attr('d', path);
+        updateMapSizeAndProjection();
+    }
+
+
+    // Event Handlers Group
+    document.getElementById('update-airline-btn').addEventListener('click', updateAirlineButtonClickHandler);
+    document.getElementById('yaw-btn').addEventListener('click', yawButtonClickHandler);
+    document.getElementById('pitch-btn').addEventListener('click', pitchButtonClickHandler);
+    document.getElementById('roll-btn').addEventListener('click', rollButtonClickHandler);
+    document.getElementById('submit-btn').addEventListener('click', submitButtonClickHandler);
+    document.getElementById('projectionSelect').addEventListener('change', projectionSelectChangeHandler);
+    window.addEventListener('resize', updateMapSizeAndProjection);
+
+    //Initialize map with default airline code
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGeojsonData();
+        //updateMapForAirline(document.getElementById('airline-code-input').value);
+    });
+
+    // This structure assumes that you have or will create named functions for event handlers like
+    //updateAirlineButtonClickHandler, yawButtonClickHandler, etc., which are not currently defined in the script.
+
+
+</script>
+<script src="routeColors.js"></script> <!-- Include the airlineColors.js file here if it's still used -->
+</body>
+</html>
+
+
+
+
+
+
+
