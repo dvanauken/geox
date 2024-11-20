@@ -16,7 +16,7 @@
     </svg>
     <div id="button-container">
 
-        <input id="airline-code-input" type="text" placeholder="Enter airline code" value="XP">
+        <input id="airline-code-input" type="text" placeholder="Enter airline code" value="airlineIata === 'AA' && (base === 'ORD' || ref === 'ORD')">
         <button id="update-airline-btn" type="button">Update Airline</button>
 
         <button id="yaw-btn">Yaw (λ) +10</button>
@@ -89,9 +89,9 @@
 
 
     const zoom = d3.zoom()
-        .scaleExtent([1, 8])
+        .scaleExtent([1, 50])
         //.translateExtent([[-projection.scale(), -projection.scale()], [projection.scale() * 2, projection.scale() * 2]])
-        .on("zoom", function(event) {
+        .on("zoom", function (event) {
             //svg.selectAll('path').attr('transform', event.transform);
 
 
@@ -101,8 +101,8 @@
                 .attr("transform", event.transform)
                 .attr("stroke-width", 0.5 / event.transform.k); // Adjust the base radius as needed
             svg.selectAll("circle.airport-dot")
-               .attr("transform", event.transform)
-               .attr("r", 12 / event.transform.k); // Adjust the base radius as needed
+                .attr("transform", event.transform)
+                .attr("r", 12 / event.transform.k); // Adjust the base radius as needed
             svg.selectAll("text.airport-label, text.country-label")
                 .attr("transform", event.transform)
                 .style("font-size", d => `${12 / event.transform.k}px`);
@@ -130,11 +130,7 @@
             files.forEach(file => {
                 const filename = file.url.split('/').pop();
                 let json = JSON.parse(file.data);
-                //const urlParts = file.url.split('/').pop().split('_');
-                //const className = `flights-${iataCode}`;
-
                 switch (true) {
-
                     case filename === 'ne_50m_admin_0_countries.geojson':
                         svg.selectAll('.country')
                             .data(json.features)
@@ -202,7 +198,7 @@
         //         return centroid !== null && centroid[0] !== undefined && centroid[1] !== undefined ? null : 'none';
         //     });
         svg.selectAll('.country-label')
-            .each(function(d) {
+            .each(function (d) {
                 const centroid = d3.geoCentroid(d);
                 const projectedCentroid = projection(centroid);
                 const visible = projectedCentroid != null && isPointVisible(centroid);
@@ -287,128 +283,204 @@
             .style("font-size", d => `${12 / transform.k}px`);
     }
 
-    function updateMapForAirline(airlineCode) {
+    // function updateMapForAirline(airlineCode) {
+    //
+    //     const className = `flights-${airlineCode}`;
+    //
+    //     // Assuming you reload or have access to the original full dataset
+    //     fetch('assets/flights.geojson').then(response => {
+    //         return response.json();
+    //     }).then(json => {
+    //
+    //         let airports = new Map();
+    //
+    //         // Clear existing map features before applying new data
+    //         svg.selectAll('path.route.visible').remove();
+    //         svg.selectAll('path.route.hitbox').remove(); // Clear hitbox paths if they were added
+    //         svg.selectAll('.airport-dot').remove();
+    //         svg.selectAll('.airport-label').remove();
+    //
+    //         json.features = json.features.filter(feature => feature.properties.airlineIata === ''+airlineCode+'');
+    //         json.features.forEach(feature => {
+    //             if (feature.geometry.type === "LineString") {
+    //                 // Use `base` and `ref` for city names instead of non-existent `CityPair`
+    //                 let baseCity = feature.properties.base;
+    //                 let refCity = feature.properties.ref;
+    //
+    //                 let baseCoords = feature.geometry.coordinates[0];
+    //                 let refCoords = feature.geometry.coordinates[1];
+    //
+    //                 airports.set(baseCity, { code: baseCity, coordinates: baseCoords });
+    //                 airports.set(refCity, { code: refCity, coordinates: refCoords });
+    //
+    //             }
+    //         });
+    //
+    //         const filteredFeatures = json.features.filter(feature => feature.properties.airlineIata === airlineCode);
+    //
+    //         svg.selectAll('path.route.visible').remove(); // Clear existing paths
+    //
+    //         svg.selectAll('.' + `flights-${airlineCode}` + '.visible')
+    //             .data(filteredFeatures)
+    //             .enter().append('path')
+    //             .attr('class', `flights-${airlineCode}` + ' route visible')
+    //             .attr('stroke', '#f0f')
+    //             .attr('stroke-width', '1.1px')
+    //             .attr('fill', 'none')
+    //             .attr('d', path);
+    //
+    //         // Draw the invisible wider "shadow" paths for improved mouseover responsiveness
+    //         svg.selectAll('.' + className + '.hitbox')
+    //             .data(json.features)
+    //             .enter().append('path')
+    //             .attr('class', className + ' route hitbox')
+    //             .attr('stroke', 'transparent')
+    //             .attr('stroke-width', '10px')
+    //             .attr('fill', 'none')
+    //             .attr('d', path)
+    //             .on("mouseover", function (event, d) {
+    //                 d3.selectAll('.' + className + '.visible')
+    //                     .filter((_, i) => i === json.features.indexOf(d))
+    //                     .attr('stroke', 'yellow')
+    //                     .attr('stroke-width', '1px');
+    //                 console.log("Base:", d.properties.base, "Ref:", d.properties.ref);
+    //             })
+    //             .on("mouseout", function (event, d) {
+    //                 d3.selectAll('.' + className + '.visible')
+    //                     .filter((_, i) => i === json.features.indexOf(d))
+    //                     //.attr('stroke', airlineColors[filename])
+    //                     .attr('stroke-width', '0.1px');
+    //             });
+    //
+    //         // Draw airport dots
+    //         const dots = svg.selectAll('.airport-dot')
+    //             .data(Array.from(airports.values()), d => d.code)
+    //             .join('circle')
+    //             .attr('class', 'airport-dot')
+    //             .attr('fill', '#ccc')
+    //             .attr('r', 12 / lastZoomTransform.k) // Use the last zoom scale for radius
+    //             .attr('cx', d => projection(d.coordinates)[0])
+    //             .attr('cy', d => projection(d.coordinates)[1])
+    //             .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+    //
+    //         // Draw airport labels
+    //         const labels = svg.selectAll('.airport-label')
+    //             .data(Array.from(airports.values()), d => d.code)
+    //             .join('text')
+    //             .attr('class', 'airport-label')
+    //             .text(d => d.code)
+    //             .attr('font-size', `${12 / lastZoomTransform.k}px`) // Use the last zoom scale for font size
+    //             .attr('text-anchor', 'middle')
+    //             .attr('dominant-baseline', 'central')
+    //             .attr('x', d => projection(d.coordinates)[0])
+    //             .attr('y', d => projection(d.coordinates)[1])
+    //             .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+    //
+    //         // // Draw airport dots
+    //         // svg.selectAll('.airport-dot')
+    //         //     .data(Array.from(airports.values()))
+    //         //     .enter()
+    //         //     .append('circle')
+    //         //     .attr('class', 'airport-dot')
+    //         //     .attr('r', 12 / lastZoomTransform.k)
+    //         //     .attr('fill', '#ccc')
+    //         //     .attr('cx', d => projection(d.coordinates)[0])
+    //         //     .attr('cy', d => projection(d.coordinates)[1])
+    //         //     .attr('transform', lastZoomTransform.toString());
+    //         //
+    //         // // Draw airport labels
+    //         // svg.selectAll('.airport-label')
+    //         //     .data(Array.from(airports.values()))
+    //         //     .enter()
+    //         //     .append('text')
+    //         //     .attr('class', 'airport-label')
+    //         //     .text(d => d.code)
+    //         //     .attr('font-size', `${12 / lastZoomTransform.k}px`)
+    //         //     .attr('text-anchor', 'middle')
+    //         //     .attr('dominant-baseline', 'central')
+    //         //     .attr('x', d => projection(d.coordinates)[0])
+    //         //     .attr('y', d => projection(d.coordinates)[1])
+    //         //     .attr('transform', lastZoomTransform.toString());
+    //     }).then(() => {
+    //         svg.selectAll("path.route.visible").attr("transform", lastZoomTransform);
+    //         svg.selectAll("circle.airport-dot").attr("transform", lastZoomTransform);
+    //         svg.selectAll("text.airport-label").attr("transform", lastZoomTransform);
+    //     }).catch(function (error) {
+    //         console.error('Error updating the map:', error);
+    //     });
+    // }
 
-        const className = `flights-${airlineCode}`;
+    function updateMapForAirline(query) {
+
+        //const query = `base === "LAX" || ref === "LAX"`;
+        //const query = `airlineIata === "AA" && (base === "ORD" || ref === "ORD")`;
+        //const query = `(airline === "AA" && (base === "ORD" && ref === "ORD")) || (airline === "UA" && (base === "EWR" && ref === "EWR"))`;
+
 
         // Assuming you reload or have access to the original full dataset
         fetch('assets/flights.geojson').then(response => {
             return response.json();
         }).then(json => {
-
-            let airports = new Map();
-
-            // Clear existing map features before applying new data
-            svg.selectAll('path.route.visible').remove();
-            svg.selectAll('path.route.hitbox').remove(); // Clear hitbox paths if they were added
-            svg.selectAll('.airport-dot').remove();
-            svg.selectAll('.airport-label').remove();
-
-            json.features = json.features.filter(feature => feature.properties.airlineIata === ''+airlineCode+'');
-            json.features.forEach(feature => {
-                if (feature.geometry.type === "LineString") {
-                    // Use `base` and `ref` for city names instead of non-existent `CityPair`
-                    let baseCity = feature.properties.base;
-                    let refCity = feature.properties.ref;
-
-                    let baseCoords = feature.geometry.coordinates[0];
-                    let refCoords = feature.geometry.coordinates[1];
-
-                    airports.set(baseCity, { code: baseCity, coordinates: baseCoords });
-                    airports.set(refCity, { code: refCity, coordinates: refCoords });
-
-                }
+            const filteredFeatures = json.features.filter(feature => {
+                const {airlineIata, base, ref} = feature.properties;
+                const evaluator = new Function('airlineIata', 'base', 'ref', `return ${query};`);
+                return evaluator(airlineIata, base, ref);
             });
 
-            const filteredFeatures = json.features.filter(feature => feature.properties.airlineIata === airlineCode);
+            // Process the filtered features...
+            console.log(filteredFeatures.length, "features matched the query");
 
-            svg.selectAll('path.route.visible').remove(); // Clear existing paths
+            // Clear existing map features before applying new data
+            svg.selectAll('.route.visible').remove(); // Remove existing visible routes
+            svg.selectAll('.route.hitbox').remove(); // Remove existing hitbox routes if any
+            svg.selectAll('.airport-dot').remove(); // Remove existing airport dots
+            svg.selectAll('.airport-label').remove(); // Remove existing airport labels
 
-            svg.selectAll('.' + `flights-${airlineCode}` + '.visible')
+            // Add paths for filtered features (routes)
+            svg.selectAll('.route.visible')
                 .data(filteredFeatures)
                 .enter().append('path')
-                .attr('class', `flights-${airlineCode}` + ' route visible')
-                .attr('stroke', '#f0f')
-                .attr('stroke-width', '0.1px')
+                .attr('class', 'route visible')
+                .attr('stroke', '#f0f') // Example stroke color, adjust as needed
+                .attr('stroke-width', '1.1px')
                 .attr('fill', 'none')
                 .attr('d', path);
 
-            // Draw the invisible wider "shadow" paths for improved mouseover responsiveness
-            svg.selectAll('.' + className + '.hitbox')
-                .data(json.features)
-                .enter().append('path')
-                .attr('class', className + ' route hitbox')
-                .attr('stroke', 'transparent')
-                .attr('stroke-width', '10px')
-                .attr('fill', 'none')
-                .attr('d', path)
-                .on("mouseover", function (event, d) {
-                    d3.selectAll('.' + className + '.visible')
-                        .filter((_, i) => i === json.features.indexOf(d))
-                        .attr('stroke', 'yellow')
-                        .attr('stroke-width', '1px');
-                    console.log("Base:", d.properties.base, "Ref:", d.properties.ref);
-                })
-                .on("mouseout", function (event, d) {
-                    d3.selectAll('.' + className + '.visible')
-                        .filter((_, i) => i === json.features.indexOf(d))
-                        //.attr('stroke', airlineColors[filename])
-                        .attr('stroke-width', '0.1px');
-                });
+            // Assuming the use of airports data from the features for dots and labels
+            let airports = new Map(); // To collect unique airports
+            filteredFeatures.forEach(feature => {
+                if (feature.geometry.type === "LineString") {
+                    const [baseCoords, refCoords] = feature.geometry.coordinates;
+                    const baseCity = feature.properties.base;
+                    const refCity = feature.properties.ref;
 
-            // Draw airport dots
-            const dots = svg.selectAll('.airport-dot')
-                .data(Array.from(airports.values()), d => d.code)
-                .join('circle')
+                    airports.set(baseCity, {code: baseCity, coordinates: baseCoords});
+                    airports.set(refCity, {code: refCity, coordinates: refCoords});
+                }
+            });
+
+            // Draw airport dots for unique airports
+            svg.selectAll('.airport-dot')
+                .data(Array.from(airports.values()))
+                .enter().append('circle')
                 .attr('class', 'airport-dot')
-                .attr('fill', '#ccc')
-                .attr('r', 12 / lastZoomTransform.k) // Use the last zoom scale for radius
+                .attr('fill', '#ccc') // Example fill color, adjust as needed
+                .attr('r', 2) // Example radius, adjust as needed
                 .attr('cx', d => projection(d.coordinates)[0])
-                .attr('cy', d => projection(d.coordinates)[1])
-                .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+                .attr('cy', d => projection(d.coordinates)[1]);
 
-            // Draw airport labels
-            const labels = svg.selectAll('.airport-label')
-                .data(Array.from(airports.values()), d => d.code)
-                .join('text')
+            // Draw airport labels for unique airports
+            svg.selectAll('.airport-label')
+                .data(Array.from(airports.values()))
+                .enter().append('text')
                 .attr('class', 'airport-label')
                 .text(d => d.code)
-                .attr('font-size', `${12 / lastZoomTransform.k}px`) // Use the last zoom scale for font size
-                .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'central')
                 .attr('x', d => projection(d.coordinates)[0])
                 .attr('y', d => projection(d.coordinates)[1])
-                .attr('transform', lastZoomTransform.toString()); // Apply the last zoom transform
+                .attr('dy', '-0.5em') // Adjust label position relative to dot
+                .style("text-anchor", "middle")
+                .style("font-size", "10px"); // Example font size, adjust as needed
 
-            // // Draw airport dots
-            // svg.selectAll('.airport-dot')
-            //     .data(Array.from(airports.values()))
-            //     .enter()
-            //     .append('circle')
-            //     .attr('class', 'airport-dot')
-            //     .attr('r', 12 / lastZoomTransform.k)
-            //     .attr('fill', '#ccc')
-            //     .attr('cx', d => projection(d.coordinates)[0])
-            //     .attr('cy', d => projection(d.coordinates)[1])
-            //     .attr('transform', lastZoomTransform.toString());
-            //
-            // // Draw airport labels
-            // svg.selectAll('.airport-label')
-            //     .data(Array.from(airports.values()))
-            //     .enter()
-            //     .append('text')
-            //     .attr('class', 'airport-label')
-            //     .text(d => d.code)
-            //     .attr('font-size', `${12 / lastZoomTransform.k}px`)
-            //     .attr('text-anchor', 'middle')
-            //     .attr('dominant-baseline', 'central')
-            //     .attr('x', d => projection(d.coordinates)[0])
-            //     .attr('y', d => projection(d.coordinates)[1])
-            //     .attr('transform', lastZoomTransform.toString());
-        }).then(() => {
-            svg.selectAll("path.route.visible").attr("transform", lastZoomTransform);
-            svg.selectAll("circle.airport-dot").attr("transform", lastZoomTransform);
-            svg.selectAll("text.airport-label").attr("transform", lastZoomTransform);
         }).catch(function (error) {
             console.error('Error updating the map:', error);
         });
@@ -492,9 +564,6 @@
         loadGeojsonData();
         //updateMapForAirline(document.getElementById('airline-code-input').value);
     });
-
-    // This structure assumes that you have or will create named functions for event handlers like
-    //updateAirlineButtonClickHandler, yawButtonClickHandler, etc., which are not currently defined in the script.
 
 
 </script>
