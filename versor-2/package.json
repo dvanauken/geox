@@ -1,0 +1,14 @@
+{
+  "name": "fd950bff9422ec44",
+  "main": "fd950bff9422ec44@232.js",
+  "version": "232.0.0",
+  "homepage": "https://observablehq.com/d/fd950bff9422ec44",
+  "author": {
+    "name": "Juan M. Urbina",
+    "url": "https://observablehq.com/@juan-m-urbina"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}

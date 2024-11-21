@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>World Map</title>
+</head>
+<body>
+<div id="content-wrapper">
+    <svg id="map" width="100%" height="100%">
+    </svg>
+    <div id="button-container">
+
+        <input id="airline-code-input" type="text" placeholder="Enter airline code" value="XP">
+        <button id="update-airline-btn" type="button">Update Airline</button>
+
+        <button id="yaw-btn">Yaw (λ) +10</button>
+        <input id="yaw-value" type="number" value="0"> <!-- Input for Yaw value -->
+        <button id="pitch-btn">Pitch (φ) +10</button>
+        <input id="pitch-value" type="number" value="0"> <!-- Input for Pitch value -->
+        <button id="roll-btn">Roll (γ) +10</button>
+        <input id="roll-value" type="number" value="0"> <!-- Input for Roll value -->
+        <button id="submit-btn" type="button">Update</button> <!-- Update button -->
+        <select id="projectionSelect">
+            <option value="geoGnomonic">Gnomonic</option>
+            <option value="geoNaturalEarth1">Natural Earth 1</option>
+            <option value="geoMercator">Mercator</option>
+            <option value="geoOrthographic">Orthographic</option>
+            <option value="geoStereographic">Stereographic</option>
+            <option value="geoTransverseMercator">TransverseMercator</option>
+        </select>
+    </div>
+</div>
+
+<script>
+    let lastZoomTransform = d3.zoomIdentity;
+    let selectedRoute = null;
+    let rotation = [0, 0, 0]; // Initial rotation for yaw, pitch, roll
+    let svgWidth = document.getElementById('map').clientWidth * 0.9;
+    let svgHeight = document.getElementById('map').clientHeight * 0.9;
+    this.sphere = {type: "Sphere"};
+
+    // Define the projection, path, and initial SVG elements
+    const svg = d3.select('#map').attr('width', '100%').attr('height', '100%');
+
+    let projection = d3.geoNaturalEarth1()
+        .fitSize([svgWidth, svgHeight], this.sphere)
+        .translate([window.innerWidth / 2, window.innerHeight / 2])
+        .rotate(rotation);
+    projection.precision(0.001);
+
+    let path = d3.geoPath().projection(projection);
+
+    svg.append("path")
+        .datum(this.sphere)
+        .attr("class", "sphere")
+        .attr("d", path)
+        .attr("fill", "#ADD8E6");
+
+    const legend = svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(20, ${window.innerHeight - 100})`);
+
+    legend.append("circle")
+        .attr("cx", 20)
+        .attr("cy", 30)
+        .attr("r", 6)
+        .style("fill", "red");
+
+    legend.append("text")
+        .attr("x", 40)
+        .attr("y", 35)
+        .text("Route Endpoint")
+        .style("font-size", "12px")
+        .attr("alignment-baseline", "middle");
+
+    svg.append("text")
+        .attr("x", 10)
+        .attr("y", 20)
+        .text("dbVA")
+        .attr("class", "company-name")
+        .attr("fill", "rgba(161,6,6,0.83)")
+        .attr("font-size", "20px");
+
+
+    const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        //.translateExtent([[-projection.scale(), -projection.scale()], [projection.scale() * 2, projection.scale() * 2]])
+        .on("zoom", function(event) {
+            //svg.selectAll('path').attr('transform', event.transform);
+
+
+            console.log(event.transform.k);
+
+            svg.selectAll("path") // For geoPaths or other paths you have
+                .attr("transform", event.transform)
+                .attr("stroke-width", 0.5 / event.transform.k); // Adjust the base radius as needed
+            svg.selectAll("circle.airport-dot")
+               .attr("transform", event.transform)
+               .attr("r", 12 / event.transform.k); // Adjust the base radius as needed
+            svg.selectAll("text.airport-label, text.country-label")
+                .attr("transform", event.transform)
+                .style("font-size", d => `${12 / event.transform.k}px`);
+            svg.selectAll('.country-label')
+                .style('display', event.transform.k > 2 ? null : 'none');
+
+            lastZoomTransform = event.transform;
+        });
+
+    svg.call(zoom); // This sets up the zoom behavior on the svg element
+
+
+    // Data Loading Group
+    function loadGeojsonData() {
+    }
+
+    // UI Update Group
+    function updateRotationInputs() {
+    }
+
+    // Map Manipulation Group
+    function updateRotation() {
+    }
+
+    function isPointVisible(centroid) {
+	  return true;
+    }
+
+    function updateMapSizeAndProjection() {
+    }
+
+
+    function zoomed(event) {
+    }
+
+    function updateMapForAirline(airlineCode) {
+    }
+
+    function updateAirlineButtonClickHandler() {
+    }
+
+    function yawButtonClickHandler() {
+    }
+
+    function pitchButtonClickHandler() {
+    }
+
+    function rollButtonClickHandler() {
+    }
+
+    function submitButtonClickHandler() {
+    }
+
+    function projectionSelectChangeHandler() {
+    }
+
+
+    // Event Handlers Group
+    document.getElementById('update-airline-btn').addEventListener('click', updateAirlineButtonClickHandler);
+    document.getElementById('yaw-btn').addEventListener('click', yawButtonClickHandler);
+    document.getElementById('pitch-btn').addEventListener('click', pitchButtonClickHandler);
+    document.getElementById('roll-btn').addEventListener('click', rollButtonClickHandler);
+    document.getElementById('submit-btn').addEventListener('click', submitButtonClickHandler);
+    document.getElementById('projectionSelect').addEventListener('change', projectionSelectChangeHandler);
+    window.addEventListener('resize', updateMapSizeAndProjection);
+
+    //Initialize map with default airline code
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGeojsonData();
+        //updateMapForAirline(document.getElementById('airline-code-input').value);
+    });
+
+    // This structure assumes that you have or will create named functions for event handlers like
+    //updateAirlineButtonClickHandler, yawButtonClickHandler, etc., which are not currently defined in the script.
+
+
+</script>
+<script src="routeColors.js"></script> <!-- Include the airlineColors.js file here if it's still used -->
+</body>
+</html>
+
+
+
+
+
+
+

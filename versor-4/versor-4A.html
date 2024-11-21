@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/versor@0.1"></script>
+<script>
+var width = 960,
+    height = 500;
+var projection = d3.geoOrthographic()
+    .scale(250)  // Increased scale for better visibility
+    .precision(0.1); // Added precision for smoother rendering
+
+var canvas = d3.select("body").append("canvas")
+    .attr("width", width)
+    .attr("height", height);
+var context = canvas.node().getContext("2d");
+
+// Enable image smoothing
+context.imageSmoothingEnabled = true;
+context.imageSmoothingQuality = 'high';
+ 
+var path = d3.geoPath()
+    .projection(projection)
+    .context(context);
+
+var render = function(){};
+
+// Improved dragging logic
+var v0, q0, r0;
+var lastX, lastY;
+
+function dragstarted() {
+    v0 = versor.cartesian(projection.invert([d3.event.x, d3.event.y]));
+    q0 = versor(r0 = projection.rotate());
+    lastX = d3.event.x;
+    lastY = d3.event.y;
+}
+
+function dragged() {
+    // Calculate the distance moved
+    var deltaX = d3.event.x - lastX;
+    var deltaY = d3.event.y - lastY;
+    
+    // Update last position
+    lastX = d3.event.x;
+    lastY = d3.event.y;
+    
+    // Scale down the rotation speed
+    var speed = 0.25;
+    
+    // Update rotation based on movement
+    var r = projection.rotate();
+    projection.rotate([
+        r[0] + deltaX * speed,
+        r[1] - deltaY * speed,
+        r[2]
+    ]);
+    
+    render();
+}
+
+// Use D3's drag behavior with better handling
+canvas
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .filter(function() {
+            return !d3.event.button && !d3.event.ctrlKey;
+        }));
+
+d3.json("https://cdn.jsdelivr.net/npm/world-atlas@1/world/110m.json").then(function(world) {
+    var land = topojson.feature(world, world.objects.land);
+    
+    render = function() {
+        // Clear with proper device pixel ratio handling
+        var pixelRatio = window.devicePixelRatio || 1;
+        context.save();
+        context.clearRect(0, 0, width * pixelRatio, height * pixelRatio);
+        
+        // Draw land
+        context.beginPath();
+        path(land);
+        context.fillStyle = "#d4d4d8";  // Light gray for land
+        context.fill();
+        
+        // Draw sphere
+        context.beginPath();
+        path({type: "Sphere"});
+        context.strokeStyle = "#000";
+        context.lineWidth = 1.5;
+        context.stroke();
+        
+        // Draw coordinates
+        var p = projection.rotate().map(d => Math.floor(10*d)/10);
+        context.fillStyle = "#000";
+        context.font = "12px sans-serif";
+        context.fillText(`λ = ${p[0]}, φ = ${p[1]}, γ = ${p[2]}`, 10, 20);
+        
+        context.restore();
+    };
+    
+    render();
+}); 
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas
+        .attr('width', width)
+        .attr('height', height);
+    projection
+        .translate([width / 2, height / 2]);
+    render();
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+</script>
+</body>

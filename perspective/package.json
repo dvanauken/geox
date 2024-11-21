@@ -1,0 +1,14 @@
+{
+  "name": "@jjhembd/tilting-the-satellite",
+  "main": "c66acfded30d55a5@394.js",
+  "version": "394.0.0",
+  "homepage": "https://observablehq.com/@jjhembd/tilting-the-satellite",
+  "author": {
+    "name": "Jeshurun Hembd",
+    "url": "https://observablehq.com/@jjhembd"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}
