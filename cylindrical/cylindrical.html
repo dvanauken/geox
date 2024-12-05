@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cylindrical Projections</title>
+    <link rel="stylesheet" type="text/css" href="Cylindrical.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+    <script src="https://unpkg.com/versor@0.2/dist/versor.min.js"></script>
+</head>
+<body>
+
+
+    <select id="projection-select">
+        <option value="MERCATOR">Mercator</option>
+        <option value="TRANSVERSE_MERCATOR">Transverse Mercator</option>
+        <option value="MILLER">Miller</option>
+        <option value="CYLINDRICAL_EQUAL_AREA">Cylindrical Equal Area</option>
+        <option value="CYLINDRICAL_STEREOGRAPHIC">Cylindrical Stereographic</option>
+        <option value="ECKERT_I">Eckert I</option>
+        <option value="ECKERT_II">Eckert II</option>
+        <option value="ECKERT_III">Eckert III</option>
+        <option value="ECKERT_IV">Eckert IV</option>
+        <option value="ECKERT_V">Eckert V</option>
+        <option value="ECKERT_VI">Eckert VI</option>
+        <option value="FAHEY">Fahey</option>
+        <option value="GALL_PETERS">Gall-Peters</option>
+        <option value="HOBO_DYER">Hobo-Dyer</option>
+        <option value="KAVRAYSKIY_VII">Kavrayskiy VII</option>
+        <option value="LAMBERT_CYLINDRICAL_EQUAL_AREA">Lambert Cylindrical Equal-Area</option>
+        <option value="NATURAL_EARTH">Natural Earth</option>
+        <option value="PATTERSON">Patterson</option>
+        <option value="TOBLER_MERCATOR">Tobler Mercator</option>
+        <option value="WAGNER_VI">Wagner VI</option>
+    </select>
+
+
+<script src="Cylindrical.js"></script>
+</body>
+</html>
