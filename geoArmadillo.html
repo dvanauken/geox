@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Armadillo Projection Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        #map {
+            border: 1px solid #ccc;
+        }
+        #error {
+            color: red;
+            display: none;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Armadillo Projection</h1>
+    <div id="controls">
+        <input type="range" id="parallel" min="-90" max="90" value="20" step="1" style="width:180px;">
+        <output id="parallelOutput" style="font-size:smaller;font-style:oblique;"></output>
+    </div>
+    <div id="error">An error occurred while loading the map.</div>
+    <canvas id="map" width="928" height="500"></canvas>
+
+    <script>
+        // Wait for all scripts to load
+        window.onload = function() {
+            try {
+                const width = 928;
+                let height = 500;
+                const canvas = document.getElementById('map');
+                const context = canvas.getContext('2d');
+                const parallel = document.getElementById('parallel');
+                const output = document.getElementById('parallelOutput');
+                const errorDiv = document.getElementById('error');
+
+                // Initialize the projection
+                const projection = d3.geoArmadillo()
+                    .parallel(20)
+                    .scale(150)
+                    .translate([width / 2, height / 2]);
+
+                // Create the path generator
+                const path = d3.geoPath(projection, context);
+
+                // Create the graticule generator
+                const graticule = d3.geoGraticule10();
+                const outline = {type: "Sphere"};
+
+                // Load the world data and render the map
+                fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(world => {
+                        const land = topojson.feature(world, world.objects.land);
+
+                        function render() {
+                            // Clear the canvas
+                            context.clearRect(0, 0, width, height);
+
+                            // Set the projection's parallel based on the input value
+                            projection.parallel(parallel.valueAsNumber);
+
+                            // Draw the sphere outline as clip path
+                            context.save();
+                            context.beginPath();
+                            path(outline);
+                            context.clip();
+
+                            // Fill with white background
+                            context.fillStyle = "#fff";
+                            context.fillRect(0, 0, width, height);
+
+                            // Draw graticule
+                            context.beginPath();
+                            path(graticule);
+                            context.strokeStyle = "#ccc";
+                            context.stroke();
+
+                            // Draw land
+                            context.beginPath();
+                            path(land);
+                            context.fillStyle = "#000";
+                            context.fill();
+
+                            context.restore();
+
+                            // Draw outline
+                            context.beginPath();
+                            path(outline);
+                            context.strokeStyle = "#000";
+                            context.stroke();
+                        }
+
+                        // Update parallel display and render map when slider changes
+                        parallel.oninput = () => {
+                            const value = parallel.valueAsNumber;
+                            output.value = `${Math.abs(value)}°${value < 0 ? "S" : "N"} parallel`;
+                            render();
+                        };
+
+                        // Initial render
+                        parallel.oninput();
+                        errorDiv.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        errorDiv.style.display = 'block';
+                        errorDiv.textContent = 'Error loading map data: ' + error.message;
+                    });
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Error initializing map: ' + error.message;
+            }
+        };
+    </script>
+</body>
+</html>

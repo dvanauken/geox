@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Terminator</title>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/solar-calculator@0.3/dist/solar-calculator.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+  <style>
+    #loadingIndicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5em;
+      color: #333;
+    }
+    body {
+      background-color: #e0f7fa;
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingIndicator">Loading map data...</div>
+  <canvas id="mapCanvas" style="width: 100%; height: auto;"></canvas>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Fetching the world map data from local file
+      fetch("land-50m.json")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(world => {
+          // Hide loading indicator
+          document.getElementById('loadingIndicator').style.display = 'none';
+
+          // Canvas setup
+          const canvas = document.getElementById('mapCanvas');
+          const context = canvas.getContext('2d');
+          const width = 960;
+          const height = 480;
+          const resolutionScale = window.devicePixelRatio || 1;
+          canvas.width = width * resolutionScale;
+          canvas.height = height * resolutionScale;
+          canvas.style.width = `${width}px`;
+          canvas.style.height = `${height}px`;
+          context.scale(resolutionScale, resolutionScale);
+
+          const sphere = {type: "Sphere"};
+          const projection = d3.geoNaturalEarth1().fitExtent([[0, 0], [width, height]], sphere);
+          const path = d3.geoPath(projection, context);
+
+          // Graticule (grid lines)
+          const renderGraticule = () => {
+            context.beginPath();
+            path(d3.geoGraticule()());
+            context.strokeStyle = "#ccc";
+            context.lineWidth = 0.5;
+            context.stroke();
+          };
+
+          // Land areas - Adjusted to use 'land' object
+          const renderLand = () => {
+            if (world.objects && world.objects.land) {
+              const land = topojson.feature(world, world.objects.land);
+              context.beginPath();
+              path(land);
+              context.fillStyle = "#555";
+              context.fill();
+            } else {
+              console.error("Error: 'land' object not found in the provided data.");
+            }
+          };
+
+          // Night region
+          const renderNightRegion = () => {
+            const now = new Date();
+            const day = new Date(+now).setUTCHours(0, 0, 0, 0);
+            const t = solar.century(now);
+            //const longitude = -solar.equationOfTime(t) / 4;
+            const longitude = (day - now) / 864e5 * 360 - 180;
+            
+            //const sun = [longitude, solar.declination(t)];
+
+            const sun = [longitude - solar.equationOfTime(t) / 4, solar.declination(t)]
+
+            const antipode = ([longitude, latitude]) => [longitude + 180, -latitude];
+            const night = d3.geoCircle()
+              .radius(90)
+              .center(antipode(sun))();
+            
+            context.beginPath();
+            path(night);
+            context.fillStyle = "rgba(0, 0, 128, 0.5)";
+            context.fill();
+          };
+
+          // Sphere boundary
+          const renderSphere = () => {
+            context.beginPath();
+            path(sphere);
+            context.strokeStyle = "#000";
+            context.lineWidth = 1;
+            context.stroke();
+          };
+
+          // Render in stages to prevent blocking
+          requestAnimationFrame(() => {
+            renderGraticule();
+            requestAnimationFrame(() => {
+              renderLand();
+              requestAnimationFrame(() => {
+                renderNightRegion();
+                requestAnimationFrame(renderSphere);
+              });
+            });
+          });
+        })
+        .catch(err => {
+          document.getElementById('loadingIndicator').textContent = `Error loading world map data: ${err.message}`;
+          console.error("Error loading world map data:", err);
+        });
+    });
+  </script>
+</body>
+</html>

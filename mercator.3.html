@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mercator Projection Aspects</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+        #mapContainer {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mercator Projection Aspects</h1>
+    <div class="controls">
+        <label>
+            Aspect Angle (0° = Standard, 90° = Transverse):
+            <input type="range" id="rotation" min="0" max="90" value="0" step="1">
+        </label>
+        <span id="rotationValue">0°</span>
+    </div>
+    <div id="mapContainer"></div>
+    <script>
+        const baseWidth = 928;
+        const baseHeight = 500;
+        let land;
+        const container = document.getElementById('mapContainer');
+
+        function calculateDimensions(angle) {
+            const radians = angle * Math.PI / 180;
+            const width = Math.round(baseWidth * Math.cos(radians) + baseHeight * Math.sin(radians));
+            const height = Math.round(baseHeight * Math.cos(radians) + baseWidth * Math.sin(radians));
+            return { width, height };
+        }
+
+        function createMap(rotation) {
+            container.innerHTML = '';
+            const { width, height } = calculateDimensions(rotation);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            container.appendChild(canvas);
+
+            const context = canvas.getContext('2d');
+            const graticule = d3.geoGraticule10();
+            const outline = {type: "Sphere"};
+
+            const scale = Math.min(width, height) * 0.3;
+            const projection = d3.geoMercator()
+                .scale(scale)
+                .translate([width / 2, height / 2])
+                .rotate([0, -rotation, 0]);
+
+            const path = d3.geoPath(projection, context);
+            const [[x0, y0], [x1, y1]] = path.bounds(outline);
+            const bboxCenter = [(x0 + x1) / 2, (y0 + y1) / 2];
+            const canvasCenter = [width / 2, height / 2];
+
+            projection.translate([
+                canvasCenter[0] + (canvasCenter[0] - bboxCenter[0]),
+                canvasCenter[1] + (canvasCenter[1] - bboxCenter[1])
+            ]);
+
+            const centeredPath = d3.geoPath(projection, context);
+
+            context.save();
+            context.beginPath();
+            centeredPath(outline);
+            context.clip();
+            context.fillStyle = "#fff";
+            context.fillRect(0, 0, width, height);
+
+            context.beginPath();
+            centeredPath(graticule);
+            context.strokeStyle = "#ccc";
+            context.stroke();
+
+            context.beginPath();
+            centeredPath(land);
+            context.fillStyle = "#000";
+            context.fill();
+
+            context.restore();
+            context.beginPath();
+            centeredPath(outline);
+            context.strokeStyle = "#000";
+            context.stroke();
+        }
+
+        const slider = document.getElementById('rotation');
+        const rotationValue = document.getElementById('rotationValue');
+
+        slider.addEventListener('input', (e) => {
+            const rotation = parseInt(e.target.value);
+            rotationValue.textContent = `${rotation}°`;
+            createMap(rotation);
+        });
+
+        d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json')
+            .then(world => {
+                land = topojson.feature(world, world.objects.land);
+                createMap(0);
+            });
+    </script>
+</body>
+</html>

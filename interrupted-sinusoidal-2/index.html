@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>D3 Map Projections</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        select {
+            padding: 5px;
+            min-width: 200px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>geoInterruptedSinusoidal</h1>
+        <div id="map-container"></div>
+    </div>
+
+    <!-- Load dependencies from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+
+    <script>
+        class WorldMap {
+            constructor(containerId, width = 960, height = 500) {
+                this.width = width;
+                this.container = document.getElementById(containerId);
+                this.outline = { type: "Sphere" };
+                this.graticule = d3.geoGraticule10();
+                
+                // Set up the canvas
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = width;
+                this.context = this.canvas.getContext('2d');
+                
+                // Create projection
+                this.projection = d3.geoInterruptedSinusoidal();
+                this.path = d3.geoPath(this.projection, this.context);
+                
+                // Add canvas to container
+                this.container.appendChild(this.canvas);
+            }
+
+            async init() {
+                try {
+                    // Load world data
+                    const response = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json');
+                    const world = await response.json();
+                    this.land = topojson.feature(world, world.objects.land);
+                    
+                    // Calculate height and render
+                    this.calculateDimensions();
+                    this.render();
+                } catch (error) {
+                    console.error('Error initializing map:', error);
+                }
+            }
+
+            calculateDimensions() {
+                const [[x0, y0], [x1, y1]] = d3.geoPath(this.projection.fitWidth(this.width, this.outline))
+                    .bounds(this.outline);
+                const dy = Math.ceil(y1 - y0);
+                const l = Math.min(Math.ceil(x1 - x0), dy);
+                this.projection.scale(this.projection.scale() * (l - 1) / l).precision(0.2);
+                this.canvas.height = dy;
+            }
+
+            render() {
+                const { context, path, outline, graticule, land } = this;
+
+                // Clear canvas
+                context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw map
+                context.save();
+                
+                // Draw outline and clip
+                context.beginPath();
+                path(outline);
+                context.clip();
+                context.fillStyle = "#fff";
+                context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw graticule
+                context.beginPath();
+                path(graticule);
+                context.strokeStyle = "#ccc";
+                context.stroke();
+                
+                // Draw land
+                context.beginPath();
+                path(land);
+                context.fillStyle = "#000";
+                context.fill();
+                
+                context.restore();
+                
+                // Draw outline
+                context.beginPath();
+                path(outline);
+                context.strokeStyle = "#000";
+                context.stroke();
+            }
+        }
+
+        // Initialize the map when the page loads
+        window.addEventListener('load', () => {
+            const map = new WorldMap('map-container');
+            map.init();
+        });
+    </script>
+</body>
+</html>

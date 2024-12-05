@@ -1,0 +1,14 @@
+{
+  "name": "@d3/interrupted-sinusoidal",
+  "main": "b07b87d46c96b6f6@170.js",
+  "version": "170.0.0",
+  "homepage": "https://observablehq.com/@d3/interrupted-sinusoidal",
+  "author": {
+    "name": "D3",
+    "url": "https://observablehq.com/@d3"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}

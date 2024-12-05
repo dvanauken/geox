@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulated Oblique Mercator Projection with Graticule</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/world-110m.v1.json"></script>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+<body>
+    <svg width="960" height="500"></svg>
+    <script>
+        const width = 960, height = 500;
+
+        // Define the projection
+        const projection = d3.geoMercator()
+            .rotate([0, 0, 1])  // Rotate 45 degrees longitude, 45 degrees latitude, and roll the projection by 45 degrees
+            .translate([width / 2, height / 2])
+            .scale(150);
+
+        const path = d3.geoPath().projection(projection);
+        const graticule = d3.geoGraticule()
+            .step([30, 30]); // Graticule lines every 30 degrees
+
+        const svg = d3.select("svg");
+
+        // Load and display the world map
+        d3.json("https://d3js.org/world-110m.v1.json").then(function(world) {
+            svg.append("path")
+                .datum(topojson.feature(world, world.objects.countries))
+                .attr("d", path)
+                .attr("fill", "steelblue")
+                .attr("stroke", "white")
+                .attr("stroke-width", "0.5");
+
+            // Add the graticule
+            svg.append("path")
+                .datum(graticule())
+                .attr("class", "graticule")
+                .attr("d", path)
+                .attr("fill", "none")
+                .attr("stroke", "black")
+                .attr("stroke-width", "0.5")
+                .attr("stroke-opacity", "1.0");
+        }).catch(error => {
+            console.error('Error loading the world map:', error);
+        });
+    </script>
+</body>
+</html>
