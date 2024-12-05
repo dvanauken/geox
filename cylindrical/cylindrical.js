@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const width = 960, height = 500;
-    const sphere = {type: "Sphere"};
+    const sphere = { type: "Sphere" };
     const graticule = d3.geoGraticule().step([30, 30]);
 
     const canvas = d3.select("body").append("canvas")
@@ -74,44 +74,42 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
     function render(land) {
-        context.clearRect(0, 0, width, height);
+        console.log('Rendering land with projection:', currentProjection);
+        context.clearRect(0, 0, width, height);  // Clearing the canvas
         context.beginPath();
-        path(sphere);
+        path(sphere);  // Drawing the sphere background
         context.fillStyle = "#fff";
         context.fill();
+
         context.beginPath();
-        path(land);
+        path(land);  // Drawing the land
         context.fillStyle = "#bbb";
         context.fill();
+
         context.beginPath();
-        path(graticule());
+        path(graticule());  // Drawing the graticule
         context.lineWidth = 0.5;
         context.strokeStyle = "#ccc";
         context.stroke();
     }
 
     const dragBehavior = d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", function() { render(land50); });
+        .on("start", function(event) {
+            const p = d3.pointer(event, this);
+            const coords = projection.invert(p);
+            this.v0 = versor.cartesian(coords);
+            this.q0 = versor(this.r0 = projection.rotate());
+        })
+        .on("drag", function(event) {
+            const p = d3.pointer(event, this);
+            const coords = projection.invert(p);
+            const v1 = versor.cartesian(projection.rotate(this.r0).invert(p));
+            const q1 = versor.multiply(this.q0, versor.delta(this.v0, v1));
+            projection.rotate(versor.rotation(q1));
+            render(land110);
+        });
 
     d3.select(canvas).call(dragBehavior);
-
-    function dragstarted(event) {
-        const p = d3.pointer(event, this);
-        const coords = projection.invert(p);
-        this.v0 = versor.cartesian(coords);
-        this.q0 = versor(this.r0 = projection.rotate());
-    }
-
-    function dragged(event) {
-        const p = d3.pointer(event, this);
-        const coords = projection.invert(p);
-        const v1 = versor.cartesian(projection.rotate(this.r0).invert(p));
-        const q1 = versor.multiply(this.q0, versor.delta(this.v0, v1));
-        projection.rotate(versor.rotation(q1));
-        render(land110);
-    }
 
     d3.select('#projection-select').on('change', function() {
         currentProjection = this.value;
