@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lambert Conformal Conic Projection Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <style>
+        .controls { margin: 20px 0; }
+        .parallel-inputs { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Lambert Conformal Conic Projection</h1>
+    <div class="controls">
+        <label>Number of Standard Parallels:
+            <select id="parallelCount">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+            </select>
+        </label>
+        <div id="parallelInputs" class="parallel-inputs">
+            <div>
+                First Parallel: <input type="range" id="parallel1" min="-90" max="90" value="30">
+                <span id="parallel1Value">30°</span>
+            </div>
+            <div>
+                Second Parallel: <input type="range" id="parallel2" min="-90" max="90" value="60">
+                <span id="parallel2Value">60°</span>
+            </div>
+        </div>
+    </div>
+    <canvas id="map" width="928" height="500"></canvas>
+
+    <script>
+        const width = 928;
+        const height = 500;
+        const canvas = document.getElementById('map');
+        const context = canvas.getContext('2d');
+
+        let projection = d3.geoConicConformal()
+            .scale(150)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath(projection, context);
+        let worldData;
+
+        // Control elements
+        const parallelCount = document.getElementById('parallelCount');
+        const parallel1 = document.getElementById('parallel1');
+        const parallel2 = document.getElementById('parallel2');
+        const parallelInputs = document.getElementById('parallelInputs');
+        
+        function updateParallelInputs() {
+            const count = parseInt(parallelCount.value);
+            const secondInput = parallel2.parentElement;
+            
+            if (count === 0) {
+                parallelInputs.style.display = 'none';
+            } else if (count === 1) {
+                parallelInputs.style.display = 'block';
+                secondInput.style.display = 'none';
+            } else {
+                parallelInputs.style.display = 'block';
+                secondInput.style.display = 'block';
+            }
+        }
+
+        function updateMap() {
+            const count = parseInt(parallelCount.value);
+            if (count > 0) {
+                const p1 = parseFloat(parallel1.value);
+                const p2 = count === 2 ? parseFloat(parallel2.value) : p1;
+                projection.parallels([p1, p2]);
+            }
+            
+            if (worldData) {
+                context.clearRect(0, 0, width, height);
+                context.beginPath();
+                path(topojson.feature(worldData, worldData.objects.land));
+                context.fillStyle = "#000";
+                context.fill();
+            }
+        }
+
+        // Event listeners
+        parallelCount.addEventListener('change', () => {
+            updateParallelInputs();
+            updateMap();
+        });
+
+        parallel1.addEventListener('input', (e) => {
+            document.getElementById('parallel1Value').textContent = e.target.value + '°';
+            updateMap();
+        });
+
+        parallel2.addEventListener('input', (e) => {
+            document.getElementById('parallel2Value').textContent = e.target.value + '°';
+            updateMap();
+        });
+
+        // Load data
+        d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json')
+            .then(world => {
+                worldData = world;
+                updateMap();
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>

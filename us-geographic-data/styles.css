@@ -1,0 +1,76 @@
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 20px;
+    background: white;
+}
+
+.controls {
+    margin: 20px 0;
+}
+
+.scrubber-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#day-slider {
+    flex-grow: 1;
+    max-width: 500px;
+}
+
+#map-container {
+    width: 975px;
+    height: 610px;
+    margin: 0 auto;
+    background: white;
+    position: relative;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+output {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.bubble {
+    stroke-width: 0.8;
+    stroke: rgba(0,0,0,0.3);
+}
+
+.bubble:hover {
+    stroke: rgba(0,0,0,0.6);
+    stroke-width: 1.2;
+    cursor: crosshair;
+}
+
+.legend-title {
+    font-weight: bold;
+    font-size: 12px;
+    fill: rgba(0,0,0,0.8);
+}
+
+.legend-bubble {
+    stroke: rgba(0,0,0,0.4);
+}
+
+.source {
+    margin-top: 20px;
+    text-align: right;
+    color: #666;
+}
+
+.error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}

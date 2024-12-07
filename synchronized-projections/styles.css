@@ -1,0 +1,28 @@
+body {
+    margin: 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.controls {
+    margin: 20px 0;
+}
+
+#globes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+canvas.globe {
+    margin: 3px;
+    cursor: grab;
+}
+
+canvas.globe:active {
+    cursor: grabbing;
+}
+
+#parameters {
+    margin-top: 10px;
+    font-family: monospace;
+}

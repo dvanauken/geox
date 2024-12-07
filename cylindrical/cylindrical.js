@@ -60,14 +60,14 @@ document.addEventListener("DOMContentLoaded", function() {
     let path = d3.geoPath(projection, context);
 
     let land50, land110;
-    fetch("./land-50m.json")
+    fetch("../../land-50m.json")
         .then(response => response.json())
         .then(json => {
             land50 = topojson.feature(json, json.objects.land);
             render(land50); // Initial render with high detail for static display.
         });
 
-    fetch("./land-110m.json")
+    fetch("../assets/land-110m.json")
         .then(response => response.json())
         .then(json => {
             land110 = topojson.feature(json, json.objects.land);

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lambert Conformal Conic Projection Map</title>
+    <!-- Let's load D3 first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+</head>
+<body>
+    <h1>Lambert Conformal Conic Projection</h1>
+    <canvas id="map" width="928" height="500"></canvas>
+
+    <script>
+        // Debug logging
+        console.log('D3 version:', d3.version);
+        
+        const width = 928;
+        const height = 500;
+        const canvas = document.getElementById('map');
+        const context = canvas.getContext('2d');
+
+        // Just try to draw a simple projection first
+        const projection = d3.geoConicConformal()
+            .scale(150)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath(projection, context);
+
+        // Load the data and see if we get here
+        d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json')
+            .then(world => {
+                console.log('Data loaded:', world);
+                
+                const land = topojson.feature(world, world.objects.land);
+                console.log('Land features:', land);
+
+                // Try to draw
+                context.beginPath();
+                path(land);
+                context.fillStyle = "#000";
+                context.fill();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+</html>

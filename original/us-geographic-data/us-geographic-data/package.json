@@ -1,0 +1,14 @@
+{
+  "name": "@observablehq/us-geographic-data",
+  "main": "463497d9cfcac523@1166.js",
+  "version": "1166.0.0",
+  "homepage": "https://observablehq.com/@observablehq/us-geographic-data",
+  "author": {
+    "name": "Observable",
+    "url": "https://observablehq.com/@observablehq"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}

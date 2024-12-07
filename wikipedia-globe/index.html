@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wikipedia SVG Globe Location Map</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Wikipedia SVG locator maps of countries (globe location map scheme)</h1>
+    <p>Click on a country to select it, click again to deselect. The projection will be centered on the latest clicked country</p>
+    
+    <div class="controls">
+        <label>
+            <input type="checkbox" id="showDisputed"> Show disputed territories
+        </label>
+    </div>
+    
+    <div id="visualization"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/versor/0.0.3/versor.min.js"></script>
+    <script src="https://unpkg.com/versor@0.2/dist/versor.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>United States Coronavirus Daily Cases Map (COVID-19)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>United States Coronavirus Daily Cases Map (COVID-19)</h1>
+    <p>In late January, a team of journalists at The New York Times began tracking each confirmed case of the new coronavirus in the United States.</p>
+    
+    <div class="controls">
+        <div class="scrubber-container">
+            <button id="play-button">Play</button>
+            <input type="range" id="day-slider" min="0" max="100" value="0">
+            <output id="date-display"></output>
+        </div>
+    </div>
+    
+    <div id="map-container"></div>
+    
+    <div class="source">Source: The New York Times</div>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

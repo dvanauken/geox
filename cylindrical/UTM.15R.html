@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UTM Zone 15R</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo-projection@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+</head>
+<body>
+    <h1>UTM Zone 15R (Houston Region)</h1>
+    <canvas id="map" width="800" height="800"></canvas>
+    <script>
+        const width = 800;
+        const height = 800;
+        const canvas = document.getElementById('map');
+        const context = canvas.getContext('2d');
+
+        // Zone 15R: Central meridian at -93° (15 * 6° - 93°)
+        const projection = d3.geoTransverseMercator()
+            .scale(6000)
+            .rotate([93, 0]) // Central meridian
+            .center([0, 28]) // Center of zone R (24°N to 32°N)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath(projection, context);
+        const houston = [-95.3698, 29.7604];
+
+        d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json')
+            .then(world => {
+                const land = topojson.feature(world, world.objects.land);
+
+                // Define zone boundaries
+                const zoneBounds = {
+                    type: "Feature",
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: [[
+                            [-96, 24], // SW
+                            [-90, 24], // SE
+                            [-90, 32], // NE
+                            [-96, 32], // NW
+                            [-96, 24]  // Close polygon
+                        ]]
+                    }
+                };
+
+                // Clip to zone
+                context.save();
+                context.beginPath();
+                path(zoneBounds);
+                //context.clip();
+
+                // Draw graticule
+                const graticule = d3.geoGraticule()
+                    .step([1, 1]);
+
+                context.beginPath();
+                path(graticule());
+                context.strokeStyle = "#ccc";
+                context.stroke();
+
+                // Draw land
+                context.beginPath();
+                path(land);
+                context.fillStyle = "#d4d4d4";
+                context.fill();
+                context.strokeStyle = "#000";
+                context.stroke();
+
+                // Draw zone boundaries
+                context.beginPath();
+                path(zoneBounds);
+                context.strokeStyle = "red";
+                context.lineWidth = 2;
+                context.stroke();
+
+                // Draw central meridian
+                const meridian = {
+                    type: "LineString",
+                    coordinates: [[-93, 24], [-93, 32]]
+                };
+
+                context.beginPath();
+                path(meridian);
+                context.strokeStyle = "blue";
+                context.lineWidth = 2;
+                context.stroke();
+
+                // Mark Houston
+                context.beginPath();
+                const [x, y] = projection(houston);
+                context.arc(x, y, 5, 0, 2 * Math.PI);
+                context.fillStyle = "red";
+                context.fill();
+
+                context.restore();
+            });
+    </script>
+</body>
+</html>
