@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dialog Example</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>HTML Dialog Example</h1>
+
+  <!-- Buttons to trigger dialogs -->
+  <button onclick="example1('This is a modeless dialog!')">Open Modeless Dialog</button>
+  <button onclick="example2('Are you sure?')">Open Modal Yes/No Dialog</button>
+  <button onclick="example3()">Open Modal Lunch Menu Dialog</button>
+
+  <!-- Modeless dialog -->
+  <dialog id="modeless-dialog">
+    <p id="modeless-message"></p>
+    <button onclick="closeModelessDialog()">Close</button>
+  </dialog>
+
+  <!-- Modal Yes/No dialog -->
+  <dialog id="modal-dialog">
+    <p id="modal-message"></p>
+    <button onclick="handleYes()">Yes</button>
+    <button onclick="handleNo()">No</button>
+  </dialog>
+
+  <!-- Modal Lunch Menu dialog -->
+  <dialog id="lunch-dialog">
+    <form method="dialog">
+      <label>Main Menu Item: 
+        <select id="main-item">
+          <option value="Pizza">Pizza</option>
+          <option value="Burger">Burger</option>
+          <option value="Salad">Salad</option>
+        </select>
+      </label>
+      <br>
+
+      <label>Side: 
+        <select id="side-item">
+          <option value="Fries">Fries</option>
+          <option value="Chips">Chips</option>
+          <option value="Fruit">Fruit</option>
+        </select>
+      </label>
+      <br>
+
+      <label>Drink: 
+        <select id="drink-item">
+          <option value="Water">Water</option>
+          <option value="Soda">Soda</option>
+          <option value="Tea">Tea</option>
+        </select>
+      </label>
+      <br>
+
+      <label>Your Name: <input type="text" id="name" required></label>
+      <br>
+
+      <label><input type="checkbox" id="to-go"> To-Go Order</label>
+      <br>
+
+      <menu>
+        <button value="cancel">Cancel</button>
+        <button type="button" onclick="submitLunchOrder()">OK</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

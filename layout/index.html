@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Dashboard with Gridstack.js and Split.js</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.3.0/gridstack.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .controls {
+            padding: 10px;
+            background: #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        .controls button {
+            padding: 10px;
+            cursor: pointer;
+        }
+        #main-container {
+            flex: 1;
+            display: flex;
+            height: calc(100% - 40px);
+        }
+        #left-pane {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+        }
+        #right-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .split {
+            flex: 1;
+            position: relative;
+        }
+        .grid-stack {
+            height: 100%;
+            background: #f0f0f0;
+        }
+        .grid-stack-item-content {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <button onclick="loadLayout('java')">Java</button>
+    <button onclick="loadLayout('data')">Data</button>
+    <button onclick="loadLayout('debug')">Debug</button>
+    <button onclick="loadLayout('javaEE')">Java EE</button>
+    <button onclick="saveLayout()">Save Layout</button>
+    <button onclick="restoreLayout()">Restore Layout</button>
+</div>
+
+<div id="main-container">
+    <div id="left-pane">
+        <div class="split" id="navigator-container">
+            <div class="grid-stack"></div>
+        </div>
+    </div>
+    <div id="right-pane">
+        <div class="split" id="editor-container">
+            <div class="grid-stack"></div>
+        </div>
+        <div class="split" id="console-container">
+            <div class="grid-stack"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/7.3.0/gridstack-all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+<script>
+    Split(['#left-pane', '#right-pane'], {
+        sizes: [20, 80],
+        minSize: [200, 400],
+        gutterSize: 5,
+    });
+
+    Split(['#editor-container', '#console-container'], {
+        direction: 'vertical',
+        sizes: [70, 30],
+        minSize: [200, 100],
+        gutterSize: 5,
+    });
+
+    const predefinedLayouts = {
+        java: [
+            { container: '#navigator-container', items: [
+                { x: 0, y: 0, w: 4, h: 3, content: 'Navigator' }
+            ] },
+            { container: '#editor-container', items: [
+                { x: 0, y: 0, w: 8, h: 6, content: 'Editor' }
+            ] },
+            { container: '#console-container', items: [
+                { x: 0, y: 0, w: 12, h: 3, content: 'Console' }
+            ] }
+        ],
+        // Add similar layouts for other perspectives
+    };
+
+    function createGrid(containerId) {
+        return GridStack.init({
+            cellHeight: 100,
+            margin: 5
+        }, document.querySelector(containerId));
+    }
+
+    const grids = {
+        '#navigator-container': createGrid('#navigator-container'),
+        '#editor-container': createGrid('#editor-container'),
+        '#console-container': createGrid('#console-container'),
+    };
+
+    function loadLayout(layoutName) {
+        Object.keys(grids).forEach(container => grids[container].removeAll());
+        const layout = predefinedLayouts[layoutName];
+        layout.forEach(({ container, items }) => {
+            const grid = grids[container];
+            items.forEach(panel => {
+                const el = document.createElement('div');
+                el.classList.add('grid-stack-item');
+                el.innerHTML = `<div class="grid-stack-item-content">${panel.content}</div>`;
+                el.setAttribute('gs-x', panel.x);
+                el.setAttribute('gs-y', panel.y);
+                el.setAttribute('gs-w', panel.w);
+                el.setAttribute('gs-h', panel.h);
+                grid.addWidget(el);
+            });
+        });
+    }
+
+    function saveLayout() {
+        const serializedLayouts = {};
+        Object.keys(grids).forEach(container => {
+            serializedLayouts[container] = grids[container].save(false, true);
+        });
+        localStorage.setItem('savedLayout', JSON.stringify(serializedLayouts));
+        alert('Layout saved!');
+    }
+
+    function restoreLayout() {
+        const savedLayout = localStorage.getItem('savedLayout');
+        if (savedLayout) {
+            const layouts = JSON.parse(savedLayout);
+            Object.keys(layouts).forEach(container => {
+                grids[container].removeAll();
+                layouts[container].forEach(panel => {
+                    const el = document.createElement('div');
+                    el.classList.add('grid-stack-item');
+                    el.innerHTML = `<div class="grid-stack-item-content">${panel.content}</div>`;
+                    el.setAttribute('gs-x', panel.x);
+                    el.setAttribute('gs-y', panel.y);
+                    el.setAttribute('gs-w', panel.w);
+                    el.setAttribute('gs-h', panel.h);
+                    grids[container].addWidget(el);
+                });
+            });
+        } else {
+            alert('No saved layout found!');
+        }
+    }
+
+    // Load default layout
+    loadLayout('java');
+</script>
+
+</body>
+</html>

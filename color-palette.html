@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corporate Color System</title>
+    <style>
+        :root {
+            /* Primary Brand Color - Royal Blue */
+            --primary-50: #EFF6FF;
+            --primary-100: #DBEAFE;
+            --primary-200: #BFDBFE;
+            --primary-300: #93C5FD;
+            --primary-400: #60A5FA;
+            --primary-500: #3B82F6;  /* Base color */
+            --primary-600: #2563EB;
+            --primary-700: #1D4ED8;
+            --primary-800: #1E40AF;
+            --primary-900: #1E3A8A;
+
+            /* Secondary Brand Color - Slate */
+            --secondary-50: #F8FAFC;
+            --secondary-100: #F1F5F9;
+            --secondary-200: #E2E8F0;
+            --secondary-300: #CBD5E1;
+            --secondary-400: #94A3B8;
+            --secondary-500: #64748B;  /* Base color */
+            --secondary-600: #475569;
+            --secondary-700: #334155;
+            --secondary-800: #1E293B;
+            --secondary-900: #0F172A;
+
+            /* Accent Color - Emerald */
+            --accent-50: #ECFDF5;
+            --accent-100: #D1FAE5;
+            --accent-200: #A7F3D0;
+            --accent-300: #6EE7B7;
+            --accent-400: #34D399;
+            --accent-500: #10B981;  /* Base color */
+            --accent-600: #059669;
+            --accent-700: #047857;
+
+            /* System Feedback Colors */
+            /* Success - Green */
+            --success-50: #F0FDF4;
+            --success-100: #DCFCE7;
+            --success-300: #86EFAC;
+            --success-500: #22C55E;  /* Base color */
+            --success-700: #15803D;
+
+            /* Error - Red */
+            --error-50: #FEF2F2;
+            --error-100: #FEE2E2;
+            --error-300: #FCA5A5;
+            --error-500: #EF4444;  /* Base color */
+            --error-700: #B91C1C;
+
+            /* Warning - Amber */
+            --warning-50: #FFFBEB;
+            --warning-100: #FEF3C7;
+            --warning-300: #FCD34D;
+            --warning-500: #F59E0B;  /* Base color */
+            --warning-700: #B45309;
+
+            /* Info - Sky */
+            --info-50: #F0F9FF;
+            --info-100: #E0F2FE;
+            --info-300: #7DD3FC;
+            --info-500: #0EA5E9;  /* Base color */
+            --info-700: #0369A1;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--secondary-50);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: var(--secondary-900);
+        }
+
+        .color-section {
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .color-swatch {
+            height: 80px;
+            border-radius: 6px;
+            border: 1px solid var(--secondary-200);
+        }
+
+        .color-info {
+            font-size: 0.875rem;
+            color: var(--secondary-700);
+        }
+
+        .usage-notes {
+            background: var(--secondary-50);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        code {
+            font-family: monospace;
+            background: var(--secondary-100);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Corporate Color System</h1>
+        
+        <section class="color-section">
+            <h2>Primary Brand Color</h2>
+            <div class="color-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--primary-50)"></div>
+                    <div class="color-info">
+                        50<br>
+                        <code>#EFF6FF</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--primary-200)"></div>
+                    <div class="color-info">
+                        200<br>
+                        <code>#BFDBFE</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--primary-500)"></div>
+                    <div class="color-info">
+                        500 (Base)<br>
+                        <code>#3B82F6</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--primary-700)"></div>
+                    <div class="color-info">
+                        700<br>
+                        <code>#1D4ED8</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--primary-900)"></div>
+                    <div class="color-info">
+                        900<br>
+                        <code>#1E3A8A</code>
+                    </div>
+                </div>
+            </div>
+            <div class="usage-notes">
+                <h3>Usage Guidelines</h3>
+                <ul>
+                    <li>50-100: Backgrounds, hover states</li>
+                    <li>200-400: Secondary buttons, borders</li>
+                    <li>500: Primary buttons, key elements</li>
+                    <li>600-700: Hover states, active states</li>
+                    <li>800-900: Text on light backgrounds</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="color-section">
+            <h2>Secondary Brand Color</h2>
+            <div class="color-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--secondary-50)"></div>
+                    <div class="color-info">
+                        50<br>
+                        <code>#F8FAFC</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--secondary-200)"></div>
+                    <div class="color-info">
+                        200<br>
+                        <code>#E2E8F0</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--secondary-500)"></div>
+                    <div class="color-info">
+                        500 (Base)<br>
+                        <code>#64748B</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--secondary-700)"></div>
+                    <div class="color-info">
+                        700<br>
+                        <code>#334155</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--secondary-900)"></div>
+                    <div class="color-info">
+                        900<br>
+                        <code>#0F172A</code>
+                    </div>
+                </div>
+            </div>
+            <div class="usage-notes">
+                <h3>Usage Guidelines</h3>
+                <ul>
+                    <li>50-100: Page backgrounds, card backgrounds</li>
+                    <li>200-400: Borders, disabled states</li>
+                    <li>500: Secondary text, icons</li>
+                    <li>600-700: Primary text</li>
+                    <li>800-900: Headings, emphasized text</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="color-section">
+            <h2>System Feedback Colors</h2>
+            <div class="color-grid">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--success-500)"></div>
+                    <div class="color-info">
+                        Success<br>
+                        <code>#22C55E</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--error-500)"></div>
+                    <div class="color-info">
+                        Error<br>
+                        <code>#EF4444</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--warning-500)"></div>
+                    <div class="color-info">
+                        Warning<br>
+                        <code>#F59E0B</code>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: var(--info-500)"></div>
+                    <div class="color-info">
+                        Info<br>
+                        <code>#0EA5E9</code>
+                    </div>
+                </div>
+            </div>
+            <div class="usage-notes">
+                <h3>Usage Guidelines</h3>
+                <ul>
+                    <li>50-100: Alert backgrounds</li>
+                    <li>300: Icons, secondary elements</li>
+                    <li>500: Primary feedback elements</li>
+                    <li>700: Text, hover states</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

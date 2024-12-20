@@ -1,0 +1,22 @@
+dialog {
+    border: solid 1px #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+    p {
+      margin: 0 0 10px;
+    }
+  
+    button {
+      margin: 5px;
+    }
+  
+    menu {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+  
